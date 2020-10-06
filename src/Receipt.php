@@ -4,26 +4,37 @@ namespace LidlParser;
 
 use Carbon\Carbon;
 use LidlParser\Exception\PositionNotFoundException;
+use LidlParser\Exception\ReceiptNotFoundException;
 use LidlParser\Exception\ReceiptParseException;
 use thiagoalessio\TesseractOCR\TesseractOCR;
 use thiagoalessio\TesseractOCR\TesseractOcrException;
 
 class Receipt
 {
-    private $rawReceipt;
-    private $explodedReceipt;
+    /** @var string */
+    private $rawReceipt = '';
+
+    /** @var string[] */
+    private $explodedReceipt = [];
 
     /**
      * @param string $imagePath
      * @throws TesseractOcrException
+     * @throws ReceiptNotFoundException
      */
-    function __construct(string $imagePath)
+    function __construct(string $imagePath = '')
     {
-        $ocr = new TesseractOCR($imagePath);
-        $this->rawReceipt = $ocr->run();
-        $this->rawReceipt = str_replace('@', '0', $this->rawReceipt); //Maybe there is a better solution to handle these ocr problem?
-        $this->explodedReceipt = explode("\n", $this->rawReceipt);
-        print_r($this->explodedReceipt);
+        if (!is_file($imagePath) && !empty($imagePath)) {
+            throw new ReceiptNotFoundException('File not found');
+        }
+
+        if (!empty($imagePath)) {
+            $ocr = new TesseractOCR($imagePath);
+            $this->rawReceipt = $ocr->run();
+            $this->rawReceipt = str_replace('@', '0', $this->rawReceipt); //Maybe there is a better solution to handle these ocr problem?
+            $this->explodedReceipt = explode("\n", $this->rawReceipt);
+            //print_r($this->explodedReceipt);
+        }
     }
 
     /**
@@ -32,8 +43,9 @@ class Receipt
      */
     public function getTotal(): float
     {
-        if (preg_match('/zu zahlen (-?\d+,\d{2})/', $this->rawReceipt, $match))
+        if (preg_match('/zu zahlen (-?\d+,\d{2})/', $this->rawReceipt, $match)) {
             return (float)str_replace(',', '.', $match[1]);
+        }
         throw new ReceiptParseException();
     }
 
@@ -46,11 +58,13 @@ class Receipt
         $next = false;
         foreach ($this->explodedReceipt as $row)
             if ($next) {
-                if (!preg_match("/(.*) \d+,\d{2}/", $row, $match))
+                if (!preg_match("/(.*) \d+,\d{2}/", $row, $match)) {
                     throw new ReceiptParseException();
+                }
                 return $match[1];
-            } else if (substr(trim($row), 0, 9) == "zu zahlen")
+            } else if (substr(trim($row), 0, 9) === 'zu zahlen') {
                 $next = true;
+            }
         throw new ReceiptParseException();
     }
 
@@ -68,8 +82,9 @@ class Receipt
      */
     public function getTimestamp(): Carbon
     {
-        if (preg_match('/(\d{2}).(\d{2}).(\d{2}) (\d{2}):(\d{2})/', $this->rawReceipt, $match))
-            return Carbon::create("20" . $match[3], $match[2], $match[1], $match[4], $match[5]);
+        if (preg_match('/(\d{2}).(\d{2}).(\d{2}) (\d{2}):(\d{2})/', $this->rawReceipt, $match)) {
+            return Carbon::create('20' . $match[3], $match[2], $match[1], $match[4], $match[5]);
+        }
         throw new ReceiptParseException();
     }
 
@@ -79,9 +94,11 @@ class Receipt
      */
     private function getProductStartLine(): int
     {
-        foreach (explode("\n", $this->rawReceipt) as $line => $content)
-            if (trim($content) == "EUR")
+        foreach (explode("\n", $this->rawReceipt) as $line => $content) {
+            if (trim($content) === 'EUR') {
                 return $line + 1;
+            }
+        }
         throw new ReceiptParseException();
     }
 
@@ -91,9 +108,11 @@ class Receipt
      */
     private function getProductEndLine(): int
     {
-        foreach (explode("\n", $this->rawReceipt) as $line => $content)
-            if (substr(trim($content), 0, 9) == "zu zahlen")
+        foreach (explode("\n", $this->rawReceipt) as $line => $content) {
+            if (substr(trim($content), 0, 9) === 'zu zahlen') {
                 return $line - 1;
+            }
+        }
         throw new ReceiptParseException();
     }
 
@@ -105,10 +124,11 @@ class Receipt
     public function getPositionByName(string $name): Position
     {
         foreach ($this->getPositions() as $position) {
-            if ($position->getName() == $name)
+            if ($position->getName() === $name) {
                 return $position;
+            }
         }
-        throw new PositionNotFoundException("Position '$name' not found");
+        throw new PositionNotFoundException('Position "' . $name . '" not found');
     }
 
     /**
@@ -186,5 +206,21 @@ class Receipt
     {
         return true; //TODO: Receipt example needed
         return !$this->isWeightLine($lineNr) && !$this->isAmountLine($lineNr);
+    }
+
+    /**
+     * @return string
+     */
+    public function getRawReceipt(): string
+    {
+        return $this->rawReceipt;
+    }
+
+    /**
+     * @param string $rawReceipt
+     */
+    public function setRawReceipt(string $rawReceipt): void
+    {
+        $this->rawReceipt = $rawReceipt;
     }
 }
