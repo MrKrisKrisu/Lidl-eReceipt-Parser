@@ -24,7 +24,7 @@ class Receipt
      */
     function __construct(string $imagePath = '')
     {
-        if (!is_file($imagePath) && !empty($imagePath)) {
+        if (!file_exists($imagePath) && !empty($imagePath)) {
             throw new ReceiptNotFoundException('File not found');
         }
 
@@ -222,5 +222,6 @@ class Receipt
     public function setRawReceipt(string $rawReceipt): void
     {
         $this->rawReceipt = $rawReceipt;
+        $this->explodedReceipt = explode("\n", $this->rawReceipt);
     }
 }
