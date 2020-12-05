@@ -23,7 +23,6 @@ class Receipt
         $this->rawReceipt = $ocr->run();
         $this->rawReceipt = str_replace('@', '0', $this->rawReceipt); //Maybe there is a better solution to handle these ocr problem?
         $this->explodedReceipt = explode("\n", $this->rawReceipt);
-        print_r($this->explodedReceipt);
     }
 
     /**
@@ -69,7 +68,7 @@ class Receipt
     public function getTimestamp(): Carbon
     {
         if (preg_match('/(\d{2}).(\d{2}).(\d{2}) (\d{2}):(\d{2})/', $this->rawReceipt, $match))
-            return Carbon::create("20" . $match[3], $match[2], $match[1], $match[4], $match[5]);
+            return Carbon::create("20" . $match[3], $match[2], $match[1], $match[4], $match[5], 0, 'Europe/Berlin');
         throw new ReceiptParseException();
     }
 
