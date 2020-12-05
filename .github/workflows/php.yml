@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install TesseractOCR
-        run: sudo apt-get install tesseract
+        run: sudo apt-get install tesseract-ocr tesseract-ocr-deu
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
