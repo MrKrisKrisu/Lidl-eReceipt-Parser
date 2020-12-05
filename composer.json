@@ -1,25 +1,25 @@
 {
-    "name": "mrkriskrisu/lidl-ereceipt-parser",
-    "description": "Library for parsing digital receipts from Lidl (supermarket)",
-    "type": "library",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Kristian Stöckel",
-            "email": "git@k118.de"
-        }
-    ],
-    "require": {
-        "php": ">=7.1",
-        "nesbot/carbon": "^2.38",
-        "thiagoalessio/tesseract_ocr": "^2.9"
-    },
-    "autoload": {
-        "psr-4": {
-            "LidlParser\\": "src/"
-        }
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^9"
+  "name": "mrkriskrisu/lidl-ereceipt-parser",
+  "description": "Library for parsing digital receipts from Lidl (supermarket)",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Kristian Stöckel",
+      "email": "git@k118.de"
     }
+  ],
+  "require": {
+    "php": "^7.3 || ^8.0",
+    "nesbot/carbon": "^2.38",
+    "thiagoalessio/tesseract_ocr": "^2.9.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "LidlParser\\": "src/"
+    }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.0"
+  }
 }
